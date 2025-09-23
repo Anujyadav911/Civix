@@ -2,11 +2,11 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Petitions = () => {
   const { user } = useAuth();
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
   const [petitions, setPetitions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,11 +36,13 @@ const Petitions = () => {
 
   // --- Derived filter options ---
   const locations = useMemo(() => {
+    if (!petitions) return ["All Locations"];
     const uniq = Array.from(new Set(petitions.map((p) => p.location)));
     return ["All Locations", ...uniq];
   }, [petitions]);
 
   const categories = useMemo(() => {
+    if (!petitions) return ["All Categories"];
     const uniq = Array.from(new Set(petitions.map((p) => p.category)));
     return ["All Categories", ...uniq];
   }, [petitions]);
@@ -49,7 +51,7 @@ const Petitions = () => {
 
   // --- Filtered results ---
   const filteredPetitions = useMemo(() => {
-    if (!user) return [];
+    if (!user || !petitions) return [];
     return petitions.filter((p) => {
       if (
         selectedLocation !== "All Locations" &&
@@ -128,10 +130,9 @@ const Petitions = () => {
         </button>
       </div>
 
-      {/* Top filter row */}
-      <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-6">
-        {/* Left: tag chips */}
-        <div className="flex flex-wrap gap-3">
+      {/* Filter Section */}
+      <div className="mb-6 bg-white p-4 rounded-lg shadow">
+        <div className="flex flex-wrap gap-3 mb-4">
           {["All", "My Petitions", "Signed by Me"].map((tag) => (
             <button
               key={tag}
@@ -139,19 +140,14 @@ const Petitions = () => {
               className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                 activeTag === tag
                   ? "bg-[#E84C3D] text-white shadow"
-                  : "bg-white text-[#2D3E50] hover:bg-[#E84C3D] hover:text-white"
+                  : "bg-gray-100 text-[#2D3E50] hover:bg-[#E84C3D] hover:text-white"
               }`}
             >
               {tag}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Detailed Filters */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-          {/* Filter inputs */}
           <select
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
@@ -203,108 +199,109 @@ const Petitions = () => {
 
       {/* Petition Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredPetitions.map((petition) => {
-          const percent = petition.goal
-            ? Math.round((petition.signatures.length / petition.goal) * 100)
-            : 0;
-          const { circumference, dashoffset, radius } =
-            circleProgressProps(percent);
-          const hasSigned = user && petition.signatures.includes(user.id);
+        {filteredPetitions.length > 0 ? (
+          filteredPetitions.map((petition) => {
+            const percent = petition.goal
+              ? Math.round((petition.signatures.length / petition.goal) * 100)
+              : 0;
+            const { circumference, dashoffset, radius } =
+              circleProgressProps(percent);
+            const hasSigned = user && petition.signatures.includes(user.id);
 
-          return (
-            <article
-              key={petition._id}
-              className="relative bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 hover:-translate-y-2 transform transition-all shadow-md hover:shadow-2xl flex flex-col"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold text-[#E84C3D] uppercase">
-                  {petition.category}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {new Date(petition.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <h2 className="text-lg font-semibold text-[#2D3E50] mb-2">
-                {petition.title}
-              </h2>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow">
-                {petition.description}
-              </p>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12">
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 48 48"
-                      className="-rotate-90"
-                    >
-                      <circle
-                        cx="24"
-                        cy="24"
-                        r={radius}
-                        stroke="#e6e6e6"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <circle
-                        cx="24"
-                        cy="24"
-                        r={radius}
-                        stroke="#E84C3D"
-                        strokeWidth="4"
-                        fill="none"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={dashoffset}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-[#2D3E50]">
-                      {petition.signatures.length}/{petition.goal}
-                    </span>
+            return (
+              <article
+                key={petition._id}
+                className="relative bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl p-5 hover:-translate-y-2 transform transition-all shadow-md hover:shadow-2xl flex flex-col"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-semibold text-[#E84C3D] uppercase">
+                    {petition.category}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(petition.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#2D3E50] mb-2 line-clamp-2">
+                  {petition.title}
+                </h2>
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow">
+                  {petition.description}
+                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-12 h-12">
+                      <svg
+                        width="48"
+                        height="48"
+                        viewBox="0 0 48 48"
+                        className="-rotate-90"
+                      >
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r={radius}
+                          stroke="#e6e6e6"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r={radius}
+                          stroke="#E84C3D"
+                          strokeWidth="4"
+                          fill="none"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={dashoffset}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-[#2D3E50]">
+                        {petition.signatures.length}/{petition.goal}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Signatures</div>
+                      <div className="text-sm font-medium text-[#2D3E50]">
+                        {percent}%
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Signatures</div>
-                    <div className="text-sm font-medium text-[#2D3E50]">
-                      {percent}%
+                  <div className="text-right">
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        petition.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {petition.status}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {petition.location}
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      petition.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
+                <div className="flex items-center justify-between gap-3 mt-auto">
+                  <button className="px-3 py-1 text-sm border border-[#2D3E50] text-[#2D3E50] rounded-lg hover:bg-[#2D3E50] hover:text-white transition w-full">
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleSign(petition._id)}
+                    className={`px-3 py-1 text-sm text-white rounded-lg transition w-full ${
+                      hasSigned || petition.status !== "Active"
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#E84C3D] hover:opacity-90"
                     }`}
+                    disabled={hasSigned || petition.status !== "Active"}
                   >
-                    {petition.status}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {petition.location}
-                  </div>
+                    {hasSigned ? "Signed" : "Sign"}
+                  </button>
                 </div>
-              </div>
-              <div className="flex items-center justify-between gap-3 mt-auto">
-                <button className="px-3 py-1 text-sm border border-[#2D3E50] text-[#2D3E50] rounded-lg hover:bg-[#2D3E50] hover:text-white transition">
-                  View
-                </button>
-                <button
-                  onClick={() => handleSign(petition._id)}
-                  className={`px-3 py-1 text-sm text-white rounded-lg transition ${
-                    hasSigned || petition.status !== "Active"
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#E84C3D] hover:opacity-90"
-                  }`}
-                  disabled={hasSigned || petition.status !== "Active"}
-                >
-                  {hasSigned ? "Signed" : "Sign"}
-                </button>
-              </div>
-            </article>
-          );
-        })}
-        {filteredPetitions.length === 0 && (
+              </article>
+            );
+          })
+        ) : (
           <div className="col-span-full bg-white border border-gray-200 rounded-lg p-6 text-center text-gray-600">
             No petitions found with the selected filters.
           </div>

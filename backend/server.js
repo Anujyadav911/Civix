@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/Auth.js";
+import petitionRoutes from "./routes/petitionRoutes.js"; // 1. Import petition routes
 import errorHandler from "./middleware/errorMiddleware.js";
 
 dotenv.config();
@@ -31,6 +32,8 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/petitions", petitionRoutes); // 2. Use the new petition routes
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;

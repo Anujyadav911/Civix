@@ -1,1 +1,10 @@
 .env 
+
+# Build output
+dist/
+dist-ssr/
+
+# Local environment files
+*.local
+.env
+.env.*

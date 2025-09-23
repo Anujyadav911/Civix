@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import axios from "axios"; // Make sure to import axios if you created a separate apiClient
+import axios from "axios";
 
 const PETITION_CATEGORIES = [
   "Environment",
@@ -20,10 +20,11 @@ const CreatePetition = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
-    category: PETITION_CATEGORIES[0], // Default to the first category
+    category: PETITION_CATEGORIES[0],
     signatureGoal: 100,
     description: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false); // 1. Add loading state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,12 +33,12 @@ const CreatePetition = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true); // 2. Set loading to true on submit
     try {
-      const petitionData = { ...formData, location: user.location };
-
+      // The backend will get the user's location automatically, so we don't need to send it.
       const res = await axios.post(
         "http://localhost:5000/api/petitions/create",
-        petitionData,
+        formData, // Send only the form data
         { withCredentials: true }
       );
 
@@ -49,6 +50,8 @@ const CreatePetition = () => {
       const errorMessage =
         err.response?.data?.message || "Could not create petition.";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false); // 3. Set loading to false after request finishes
     }
   };
 
@@ -147,6 +150,7 @@ const CreatePetition = () => {
             id="signatureGoal"
             name="signatureGoal"
             type="number"
+            min="1"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E84C3D]"
             value={formData.signatureGoal}
             onChange={handleChange}
@@ -177,9 +181,10 @@ const CreatePetition = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-3 bg-[#E84C3D] text-white font-semibold rounded-lg hover:bg-red-600 transition duration-300"
+          disabled={isSubmitting} // 4. Disable button while submitting
+          className="w-full py-3 bg-[#E84C3D] text-white font-semibold rounded-lg hover:bg-red-600 transition duration-300 disabled:bg-gray-400"
         >
-          Create Petition
+          {isSubmitting ? "Submitting..." : "Create Petition"}
         </button>
       </form>
     </div>
