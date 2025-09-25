@@ -5,7 +5,6 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// Helper to generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "1h",
@@ -18,34 +17,21 @@ const generateToken = (id) => {
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, location, role } = req.body;
-
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(409).json({ msg: "User already exists" });
+    if (existingUser) return res.status(409).json({ msg: "User already exists" });
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save new user
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-      location,
-      role,
-    });
+    const newUser = new User({ name, email, password: hashedPassword, location, role });
     await newUser.save();
 
-    // Generate token
     const token = generateToken(newUser._id);
 
-    // Send token in httpOnly cookie
-    res.cookie("token", token, {
+    // Use "authToken" cookie
+    res.cookie("authToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only https in prod
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 1000, // 1 hour
+      maxAge: 60 * 60 * 1000,
     });
 
     res.status(201).json({
@@ -69,20 +55,16 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Find user
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ msg: "Invalid credentials" });
 
-    // Generate token
     const token = generateToken(user._id);
 
-    // Send token in httpOnly cookie
-    res.cookie("token", token, {
+    // Use "authToken" cookie
+    res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -108,7 +90,7 @@ router.post("/login", async (req, res) => {
 // Logout
 // ============================
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("authToken");
   res.json({ msg: "Logged out successfully" });
 });
 
@@ -116,9 +98,8 @@ router.post("/logout", (req, res) => {
 // Protected Route (Test JWT)
 // ============================
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.token; // read from cookie
-  if (!token)
-    return res.status(401).json({ msg: "No token, authorization denied" });
+  const token = req.cookies.authToken;
+  if (!token) return res.status(401).json({ msg: "No token, authorization denied" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
