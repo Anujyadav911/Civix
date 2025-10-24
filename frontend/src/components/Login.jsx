@@ -34,7 +34,8 @@ const Login = () => {
       if (res.data.user) {
         toast.success("Login successful!");
         login(res.data.user);
-        navigate("/dashboard");
+        // Use replace to prevent back button issues
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       console.error("❌ Login error:", err);

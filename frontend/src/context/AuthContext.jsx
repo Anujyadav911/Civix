@@ -29,6 +29,10 @@ export const AuthProvider = ({ children }) => {
         console.log("No valid session found. Logging out.");
         setUser(null);
         sessionStorage.removeItem("user");
+        // Clear browser history to prevent back button issues
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          window.history.replaceState(null, '', '/login');
+        }
       } finally {
         setLoading(false);
       }
