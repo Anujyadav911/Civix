@@ -29,8 +29,9 @@ export const AuthProvider = ({ children }) => {
         console.log("No valid session found. Logging out.");
         setUser(null);
         sessionStorage.removeItem("user");
-        // Clear browser history to prevent back button issues
+        // Only redirect if not already on login/register pages
         if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          // Use replace to avoid adding to history stack
           window.history.replaceState(null, '', '/login');
         }
       } finally {
@@ -55,6 +56,8 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       sessionStorage.removeItem("user");
+      // Force redirect to login page after logout
+      window.location.href = '/login';
     }
   };
 
