@@ -393,7 +393,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- Your Name - [GitHub](https://github.com/yourusername)
+- Anuj Yadav - [GitHub](https://github.com/Anujyadav911)
 
 ## 🙏 Acknowledgments
 
@@ -409,7 +409,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Built with ❤️ for better civic engagement**
 
-[Report Bug](https://github.com/yourusername/civix/issues) · [Request Feature](https://github.com/yourusername/civix/issues)
+[Report Bug](anujyadav47247@gmail.com) · [Request Feature](https://github.com/Anujyadav911)
 
 </div>
 
